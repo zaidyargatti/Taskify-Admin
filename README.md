@@ -57,7 +57,7 @@ DB_URL=mongodb+srv://9928zaid:<password>@cluster0.ozur1.mongodb.net
 PORT=2000
 JWT_SECRET=Zaid Yargatti
 
-CLOUDINARY_CLOUD_NAME=your cloud name 
+CLOUDINARY_CLOUD_NAME=your cloud name
 CLOUDINARY_API_KEY=your key
 CLOUDINARY_API_SECRET=your secret key
 (*Note : There is no register controller in this so if you have to create a new admin there is script folder run the node script js for once and admin will create and use those credentials for login or I have given already created admin use that )
