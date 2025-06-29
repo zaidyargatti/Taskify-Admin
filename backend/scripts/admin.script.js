@@ -1,4 +1,4 @@
-This script was use to create admin it was already run one time and it's work is done.
+//This script was use to create admin it was already run one time and it's work is done.
 
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
