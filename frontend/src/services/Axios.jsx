@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const Axios = axios.create({
-    baseURL:"http://localhost:2000"
+    baseURL: "https://taskify-admin.onrender.com" || "http://localhost:2000"
 })
 
 Axios.interceptors.request.use((config)=>{
