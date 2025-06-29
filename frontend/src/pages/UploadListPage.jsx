@@ -7,6 +7,7 @@ export default function UploadListPage() {
   const [rows, setRows] = useState([]);
   const [error, setError] = useState('');
   const [uploadMsg, setUploadMsg] = useState('');
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
 
   const requiredHeaders = ['FirstName', 'Phone', 'Notes'];
@@ -61,9 +62,11 @@ export default function UploadListPage() {
   const handleUpload = async () => {
     setError('');
     setUploadMsg('');
+    setUploading(true);
 
     if (!file) {
       setError('No file selected');
+      setUploading(false);
       return;
     }
 
@@ -78,10 +81,13 @@ export default function UploadListPage() {
       fileInputRef.current.value = '';
     } catch (err) {
       setError(err?.response?.data?.message || 'Upload failed');
+    } finally {
+      setUploading(false);
     }
   };
 
   const handleCancel = () => {
+    if (uploading) return;
     setFile(null);
     setRows([]);
     setError('');
@@ -134,12 +140,25 @@ export default function UploadListPage() {
             <div className="mt-4 flex gap-4">
               <button
                 onClick={handleUpload}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition"
+                disabled={uploading}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition flex items-center justify-center"
               >
-                Upload to Server
+                {uploading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                    </svg>
+                    Uploading...
+                  </>
+                ) : (
+                  'Upload to Server'
+                )}
               </button>
+
               <button
                 onClick={handleCancel}
+                disabled={uploading}
                 className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded transition"
               >
                 Cancel
