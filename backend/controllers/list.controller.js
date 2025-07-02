@@ -31,8 +31,8 @@ const uploadlist = async (req, res) => {
     if (!rows.length) {
       return res.status(400).json({ message: 'Empty file' });
     }
-
-    const agents = await Agent.find();
+    const createdBy = req.user._id;  
+    const agents = await Agent.find({createdBy});
     if (!agents.length) {
       return res.status(400).json({ message: 'No agents available for assignment' });
     }
@@ -54,7 +54,8 @@ if (agents.length === 5) {
         firstName: row.FirstName || row.first_name || row.firstName,
         phone: row.Phone || row.phone,
         notes: row.Notes || row.notes,
-        assigneTo: agents[i]._id, // ✅ FIXED here
+        assigneTo: agents[i]._id, 
+        createdBy
       });
     });
 
@@ -68,7 +69,8 @@ if (agents.length === 5) {
       firstName: row.FirstName || row.first_name || row.firstName,
       phone: row.Phone || row.phone,
       notes: row.Notes || row.notes,
-      assigneTo: agent._id, // ✅ FIXED here too
+      assigneTo: agent._id,
+       createdBy
     });
   });
 }

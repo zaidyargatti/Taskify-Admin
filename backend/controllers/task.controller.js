@@ -2,7 +2,8 @@ import Listitem from "../models/list.model.js";
 
 const getAllTasksWithAgents = async (req, res) => {
   try {
-    const tasks = await Listitem.find()
+    const createdBy = req.user._id;
+    const tasks = await Listitem.find({createdBy})
       .populate('assigneTo', 'name email mobile') // get agent details
       .sort({ createdAt: -1 }); // latest first
 
@@ -13,6 +14,17 @@ const getAllTasksWithAgents = async (req, res) => {
   }
 };
 
+const gettaskbyagent =  async (req, res) => {
+  try {
+    const tasks = await Listitem.find({ assigneTo: req.params.agentId });
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching tasks' });
+  }
+};
+
+
 export { 
-    getAllTasksWithAgents 
+    getAllTasksWithAgents ,
+    gettaskbyagent
 };

@@ -6,6 +6,7 @@ import Listitem from '../models/list.model.js';
 const AgentRegister = async(req,res)=>{
     try {
         const {name,email,mobile,password}=req.body
+        const createdBy = req.user._id;
         if(!name || !email || !mobile || !password){
             res.status(400)
             .json({
@@ -24,7 +25,8 @@ const AgentRegister = async(req,res)=>{
             name,
             email,
             mobile,
-            password:HashedPassword
+            password:HashedPassword,
+            createdBy
         })
         res.status(201)
         .json({
@@ -43,7 +45,8 @@ const AgentRegister = async(req,res)=>{
 
 const GetAllAgents = async (req, res) => {
   try {
-    const agents = await Agent.find({}, '-password');
+    const createdBy = req.user._id;
+    const agents = await Agent.find({createdBy}, '-password');
 
     const agentsWithTaskCount = await Promise.all(
       agents.map(async (agent) => {

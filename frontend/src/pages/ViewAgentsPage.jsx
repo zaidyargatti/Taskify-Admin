@@ -3,16 +3,15 @@ import axios from '../services/Axios';
 
 export default function ViewAgentsPage() {
   const [agents, setAgents] = useState([]);
-  const [filteredAgents, setFilteredAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
-  const [editId, setEditId] = useState(null);
-  const [editData, setEditData] = useState({ name: '', email: '', mobile: '' });
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredAgents, setFilteredAgents] = useState([]);
+
+  const [taskModal, setTaskModal] = useState({ open: false, agent: null });
+  const [agentTasks, setAgentTasks] = useState([]);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchAgents = async () => {
     try {
@@ -31,55 +30,22 @@ export default function ViewAgentsPage() {
   }, []);
 
   const handleSearch = (e) => {
-    const query = e.target.value.toLowerCase();
-    setSearchQuery(query);
+    const q = e.target.value.toLowerCase();
+    setSearchQuery(q);
     const filtered = agents.filter(
       (a) =>
-        a.name.toLowerCase().includes(query) ||
-        a.email.toLowerCase().includes(query)
+        a.name.toLowerCase().includes(q) || a.email.toLowerCase().includes(q)
     );
     setFilteredAgents(filtered);
   };
 
-  const confirmDelete = (id) => {
-    setDeleteId(id);
-    setShowConfirm(true);
-  };
-
-  const handleDelete = async () => {
+  const handleShowTasks = async (agent) => {
     try {
-      await axios.delete(`/agent/${deleteId}`);
-      setShowConfirm(false);
-      setSuccessMsg('Agent deleted successfully ✅');
-      setErrorMsg('');
-      fetchAgents();
-      setTimeout(() => setSuccessMsg(''), 3000);
+      const res = await axios.get(`/task/agent/${agent._id}`);
+      setAgentTasks(res.data);
+      setTaskModal({ open: true, agent });
     } catch (error) {
-      setShowConfirm(false);
-      setErrorMsg('Failed to delete agent');
-      setTimeout(() => setErrorMsg(''), 3000);
-    }
-  };
-
-  const handleEdit = (agent) => {
-    setEditId(agent._id);
-    setEditData({
-      name: agent.name,
-      email: agent.email,
-      mobile: agent.mobile,
-    });
-  };
-
-  const handleUpdate = async () => {
-    try {
-      await axios.put(`/agent/${editId}`, editData);
-      setEditId(null);
-      setSuccessMsg('Agent updated successfully ✅');
-      setErrorMsg('');
-      fetchAgents();
-      setTimeout(() => setSuccessMsg(''), 3000);
-    } catch (error) {
-      setErrorMsg('Failed to update agent');
+      setErrorMsg('Failed to fetch tasks');
       setTimeout(() => setErrorMsg(''), 3000);
     }
   };
@@ -89,7 +55,7 @@ export default function ViewAgentsPage() {
 
   return (
     <div className="w-full flex justify-center">
-      <div className="w-full max-w-6xl bg-white mt-10 p-8 rounded-xl shadow-lg space-y-6">
+      <div className="w-full max-w-7xl bg-white mt-10 p-8 rounded-xl shadow-lg space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold font-inter text-gray-800">All Agents</h2>
           <input
@@ -106,103 +72,77 @@ export default function ViewAgentsPage() {
             {successMsg}
           </div>
         )}
-
         {errorMsg && (
           <div className="bg-red-100 text-red-700 px-4 py-2 rounded text-center">
             {errorMsg}
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAgents.map((agent) => (
-            <div
-              key={agent._id}
-              className="bg-gray-50 rounded-xl shadow p-6 space-y-2 relative"
-            >
-              {editId === agent._id ? (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    className="w-full border px-3 py-2 rounded focus:outline-none"
-                    value={editData.name}
-                    onChange={(e) => setEditData({ ...editData, name: e.target.value })}
-                  />
-                  <input
-                    type="email"
-                    className="w-full border px-3 py-2 rounded focus:outline-none"
-                    value={editData.email}
-                    onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                  />
-                  <input
-                    type="text"
-                    className="w-full border px-3 py-2 rounded focus:outline-none"
-                    value={editData.mobile}
-                    onChange={(e) => setEditData({ ...editData, mobile: e.target.value })}
-                  />
-                  <div className="flex gap-2">
+        {/* Table UI */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-sm text-left border">
+            <thead className="bg-sky-100 text-gray-700 uppercase">
+              <tr>
+                <th className="px-6 py-3">Name</th>
+                <th className="px-6 py-3">Email</th>
+                <th className="px-6 py-3">Mobile</th>
+                <th className="px-6 py-3">Tasks</th>
+                <th className="px-6 py-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredAgents.map((agent) => (
+                <tr key={agent._id} className="border-t hover:bg-gray-50">
+                  <td className="px-6 py-4 font-medium text-gray-800">{agent.name}</td>
+                  <td className="px-6 py-4 text-gray-700">{agent.email}</td>
+                  <td className="px-6 py-4 text-gray-700">{agent.mobile}</td>
+                  <td className="px-6 py-4 text-gray-700">{agent.taskCount || 0}</td>
+                  <td className="px-6 py-4">
                     <button
-                      className="bg-blue-600 text-white px-4 py-1 rounded"
-                      onClick={handleUpdate}
+                      className="bg-sky-500 hover:bg-sky-600 text-white text-sm px-4 py-1 rounded"
+                      onClick={() => handleShowTasks(agent)}
                     >
-                      Save
+                      View Tasks
                     </button>
-                    <button
-                      className="bg-gray-400 text-white px-4 py-1 rounded"
-                      onClick={() => setEditId(null)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <h3 className="text-lg font-bold text-blue-700">{agent.name}</h3>
-                  <p className="text-gray-600">📧 {agent.email}</p>
-                  <p className="text-gray-600">📱 {agent.mobile}</p>
-                  <p className="text-gray-600">🧾 Tasks: {agent.taskCount || 0}</p>
-                  <div className="absolute top-4 right-4 flex gap-3">
-                    <button
-                      onClick={() => handleEdit(agent)}
-                      className="text-blue-600 text-lg hover:scale-105"
-                      title="Edit"
-                    >
-                      ✏️
-                    </button>
-                    <button
-                      onClick={() => confirmDelete(agent._id)}
-                      className="text-red-600 text-lg hover:scale-105"
-                      title="Delete"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </>
+                  </td>
+                </tr>
+              ))}
+              {filteredAgents.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="text-center py-4 text-gray-500">
+                    No agents found.
+                  </td>
+                </tr>
               )}
-            </div>
-          ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* Confirmation Modal */}
-      {showConfirm && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-lg text-center w-80">
-            <h2 className="text-lg font-semibold mb-4 text-red-600">Confirm Delete</h2>
-            <p className="mb-4">Are you sure you want to delete this agent?</p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={handleDelete}
-                className="bg-red-600 text-white px-4 py-2 rounded"
-              >
-                Yes, Delete
-              </button>
-              <button
-                onClick={() => setShowConfirm(false)}
-                className="bg-gray-300 text-black px-4 py-2 rounded"
-              >
-                Cancel
-              </button>
-            </div>
+      {/* Task Modal */}
+      {taskModal.open && (
+    <div className="fixed inset-0  bg-opacity-40 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-lg space-y-4">
+            <h3 className="text-xl font-semibold text-gray-800">
+              Tasks for: {taskModal.agent.name}
+            </h3>
+
+            {agentTasks.length > 0 ? (
+              <ul className="list-disc list-inside text-gray-700 space-y-1">
+                {agentTasks.map((task) => (
+                  <li key={task._id}>📌 {task.notes}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No tasks assigned to this agent.</p>
+            )}
+
+            <button
+              onClick={() => setTaskModal({ open: false, agent: null })}
+              className="mt-4 px-4 py-2 bg-gray-300 text-gray-900 rounded hover:bg-gray-400"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

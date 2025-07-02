@@ -6,14 +6,6 @@ import Agent from "../models/agent.model.js";
 const login = async(req,res)=>{
     try {
         const {email,password}=req.body 
-        const agent = await Agent.findOne({email});
-        if(agent){
-            
-           return res.status(400)
-            .json({
-                message:'Access Denied: This panel is only for ADMIN!'
-            })
-        }
        const user= await User.findOne({email})
        if(!user){
         return res.status(400)

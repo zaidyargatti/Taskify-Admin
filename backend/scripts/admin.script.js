@@ -1,18 +1,36 @@
-//This script was use to create admin it was already run one time and it's work is done.
+// adminCreator.js
 
-import User from "../models/user.model.js";
-import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 import connectDB from "../config/db.config.js";
+import User from "../models/user.model.js";
 
-dotenv.config()
-connectDB()
+dotenv.config();
+await connectDB();
 
-const hashed = await bcrypt.hash('Admin@01',10)
-await User.create({
-    email:'admin@gmail.com',
-    password:hashed
-})
+const createAdmin = async () => {
+  try {
+    const email = 'admin2@gmail.com';
+    const password = 'Admin@01';
 
-console.log('Admin Created');
-process.exit()
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      console.log(" Admin already exists with this email!");
+    } else {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      await User.create({
+        email,
+        password: hashedPassword,
+      });
+      console.log(" Admin created successfully!");
+    }
+
+  } catch (error) {
+    console.error(" Error creating admin:", error);
+  } finally {
+    process.exit();
+  }
+};
+
+createAdmin();
