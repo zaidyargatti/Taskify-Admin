@@ -46,7 +46,7 @@ Smart-Assignment-System/
 └── README.md
 ```
 ADMIN LOGIN CREDENTIALS
-Email: admin@gmail.com
+Email: admin1@gmail.com
 Password: Admin@01
 
 INSTALLATION SETUP 
