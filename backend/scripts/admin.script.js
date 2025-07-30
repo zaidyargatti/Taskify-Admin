@@ -10,7 +10,7 @@ await connectDB();
 
 const createAdmin = async () => {
   try {
-    const email = 'admin4@gmail.com';
+    const email = 'admin1@gmail.com';
     const password = 'Admin@01';
 
     const existingUser = await User.findOne({ email });
